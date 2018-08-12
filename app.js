@@ -19,40 +19,23 @@ app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({
+  extended: false
+}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/smartbasket', smartBasketRouter);
-var uploadDir = 'public/images';
-
-app.get('/smartbasket/api/images/:_storenum', (req, res) => {
-  var storenum = req.params['_storenum'];
-  let images = getImagesFromDir(path.join(__dirname, uploadDir));
+var uploadDir = 'public/uploads';
+app.get('/images', (req, res) => {
+  let images = getImagesFromDir(path.join(__dirname, 'public/uploads'));
   res.render('index', {
-    title: 'Smart Basket Image Server',
+    title: 'Camera Trap Image Server',
     images: images
   })
 });
-/*
-app.post('/smartbasket/api/:_storenum/:_basketnum', function (req, res, next) {
-  var d = new Date()
-  var basketnum = req.params['_basketnum'];
-  var storenum = req.params['_storenum'];
-  var filename = basketnum + "-" + dateFormat(new Date(), "HH_MM") + ".jpg";
-  filename = path.join(__dirname, uploadDir + '/' + filename);
-  var f = fs.createWriteStream(filename);
-  req.on('data', function (chunk) {
-    f.write(chunk);
-  }).on('end', function () {
-    f.end();
-    console.log("saved " + filename);
-    res.status(200).end("OK");
-  });
-});
-*/
 function getImagesFromDir(dirPath) {
   let allImages = [];
 
@@ -64,19 +47,42 @@ function getImagesFromDir(dirPath) {
     if (stat && stat.isDirectory()) {
       getImagesFromDir(fileLocation); // process sub directories
     } else if (stat && stat.isFile() && ['.jpg', '.png'].indexOf(path.extname(fileLocation)) != -1) {
-      allImages.push('/images/' + file);
+      allImages.push('/uploads/' + file);
     }
   }
   return allImages;
 }
+app.post('/upload', function (req, res) {
+  var d = new Date()
+  var filename = dateFormat(new Date(), "mm-dd-yyyy_HH_MM_ss") + ".jpg";
+  filename = path.join(__dirname, uploadDir + '/' + filename);
+  var f = fs.createWriteStream(filename);
+  req.on('data', function (chunk) {
+    f.write(chunk);
+  }).on('end', function () {
+    f.end();
+
+    // rotate image 180 degrees because camera is mounted upside-down
+    /*jimp.read(filename, function (err, image) {
+      image.rotate(180)
+        .write(filename);
+    }).catch(function (err) {
+      console.log("error: " + err);
+    });*/
+
+    console.log("saved " + filename);
+    res.status(200).end("OK");
+  });
+
+});
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   console.log('Error');
   console.log(err);
   // set locals, only providing error in development
