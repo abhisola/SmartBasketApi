@@ -8,33 +8,10 @@ var multerS3 = require('multer-s3');
 var fs = require('fs');
 var dateFormat = require('dateformat');
 
-var Uploader = require('s3-image-uploader');
 //const S3_BUCKET = process.env.S3_BUCKET;
 const S3_BUCKET = 'smart-basket-itcus';
 var uploadDir = 'images';
 
-var uploader = new Uploader({
-    aws: {
-        key: '',
-        secret: ''
-    },
-    websocketServer: server,
-    websocketServerPort: 3004,
-});
-uploader.upload({
-        fileId: 'file',
-        bucket: S3_BUCKET,
-        source: './images/myoldimage.jpg',
-        name: 'mynewimage.jpg'
-    },
-    function (data) { // success
-        console.log('upload success:', data);
-        // execute success code
-    },
-    function (errMsg, errObject) { //error
-        console.error('unable to upload: ' + errMsg + ':', errObject);
-        // execute error code
-    });
 s3 = new aws.S3();
 var {
     Pool,
