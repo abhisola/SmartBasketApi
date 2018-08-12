@@ -25,7 +25,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-//app.use('/smartbasket', smartBasketRouter);
+app.use('/smartbasket', smartBasketRouter);
 var uploadDir = 'public/images';
 
 app.get('/smartbasket/api/images/:_storenum', (req, res) => {
@@ -36,6 +36,7 @@ app.get('/smartbasket/api/images/:_storenum', (req, res) => {
     images: images
   })
 });
+/*
 app.post('/smartbasket/api/:_storenum/:_basketnum', function (req, res, next) {
   var d = new Date()
   var basketnum = req.params['_basketnum'];
@@ -51,7 +52,7 @@ app.post('/smartbasket/api/:_storenum/:_basketnum', function (req, res, next) {
     res.status(200).end("OK");
   });
 });
-
+*/
 function getImagesFromDir(dirPath) {
   let allImages = [];
 

@@ -3,21 +3,94 @@ var express = require('express');
 var router = express.Router();
 var path = require('path');
 const aws = require('aws-sdk');
+var multer = require('multer');
+var multerS3 = require('multer-s3');
 var fs = require('fs');
 var dateFormat = require('dateformat');
+
+var Uploader = require('s3-image-uploader');
 //const S3_BUCKET = process.env.S3_BUCKET;
 const S3_BUCKET = 'smart-basket-itcus';
 var uploadDir = 'images';
-aws.config.region = 'eu-west-1';
+
+var uploader = new Uploader({
+    aws: {
+        key: '',
+        secret: ''
+    },
+    websocketServer: server,
+    websocketServerPort: 3004,
+});
+uploader.upload({
+        fileId: 'file',
+        bucket: S3_BUCKET,
+        source: './images/myoldimage.jpg',
+        name: 'mynewimage.jpg'
+    },
+    function (data) { // success
+        console.log('upload success:', data);
+        // execute success code
+    },
+    function (errMsg, errObject) { //error
+        console.error('unable to upload: ' + errMsg + ':', errObject);
+        // execute error code
+    });
+s3 = new aws.S3();
 var {
     Pool,
     Client
 } = require('pg');
+
 router.get('/', function (req, res, next) {
     res.render('index', {
         title: 'Smart Basket'
     });
 });
+var upload = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: S3_BUCKET,
+        acl: 'public-read',
+        metadata: function (req, file, cb) {
+            console.log("In meta");
+            console.log(file);
+            cb(null, {
+                fieldName: file.fieldname
+            });
+        },
+        key: function (req, file, cb) {
+            console.log("In Key");
+            console.log(file);
+            cb(null, Date.now().toString()); //use Date.now() for unique file keys
+        }
+    })
+});
+
+//use by upload form
+router.post('/upload', upload.array('upl', 1), function (req, res, next) {
+    res.send("Uploaded!");
+});
+router.post('/api/:_storenum/:_basketnum', function (req, res, next) {
+  var d = new Date();
+  var basketnum = req.params['_basketnum'];
+  var storenum = req.params['_storenum'];
+  var filename = basketnum + "-" + dateFormat(new Date(), "HH_MM") + ".jpg";
+  filename = path.join(__dirname, uploadDir + '/' + filename);
+  var f = fs.createWriteStream(filename);
+  var file_data = [];
+  req.on('data', function (chunk) {
+      f.write(chunk);
+      file_data.push(chunk);
+  }).on('end', function () {
+      f.end();
+      var fullData = Buffer.from(file_data);
+      console.log("saved " + filename);
+  });
+});
+router.post('/upload', upload.array('upl', 1), function (req, res, next) {
+    res.send("Uploaded!");
+});
+
 /*
 router.post('/api/:_storenum/:_basketnum', function (req, res, next) {
     var basketnum = req.params['_basketnum'];
