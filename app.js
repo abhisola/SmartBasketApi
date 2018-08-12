@@ -52,7 +52,7 @@ function getImagesFromDir(dirPath) {
   }
   return allImages;
 }
-app.post('/upload', function (req, res) {
+app.post('/smartbasket/api/:_storeId/:_basketId', function (req, res) {
   var d = new Date()
   var filename = dateFormat(new Date(), "mm-dd-yyyy_HH_MM_ss") + ".jpg";
   filename = path.join(__dirname, uploadDir + '/' + filename);
