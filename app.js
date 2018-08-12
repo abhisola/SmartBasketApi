@@ -27,8 +27,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/smartbasket', smartBasketRouter);
-var uploadDir = 'public/uploads';
+//app.use('/smartbasket', smartBasketRouter);
+var uploadDir = '/public/uploads';
 app.get('/images', (req, res) => {
   let images = getImagesFromDir(path.join(__dirname, 'public/uploads'));
   res.render('index', {
