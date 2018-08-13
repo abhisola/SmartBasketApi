@@ -32,7 +32,7 @@ var uploadDir = '/public/uploads';
 app.get('/images', (req, res) => {
   let images = getImagesFromDir(path.join(__dirname, 'public/uploads'));
   res.render('index', {
-    title: 'Camera Trap Image Server',
+    title: 'Smart Basket Image Server',
     images: images
   })
 });
