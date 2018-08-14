@@ -7,6 +7,7 @@ var path = require('path');
 const aws = require('aws-sdk');
 var fs = require('fs');
 var dateFormat = require('dateformat');
+var rimraf = require('rimraf');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -52,6 +53,12 @@ function getImagesFromDir(dirPath) {
   }
   return allImages;
 }
+app.delete('/smartbasket/api/:_storeId/:_basketId', function(req, res) {
+  rimraf('.'+uploadDir + '/*', function () {
+    console.log('done');
+    res.status(200).end("OK");
+  });
+});
 app.post('/smartbasket/api/:_storeId/:_basketId', function (req, res) {
   var d = new Date()
   var filename = dateFormat(new Date(), "mm-dd-yyyy_HH_MM_ss") + ".jpg";
