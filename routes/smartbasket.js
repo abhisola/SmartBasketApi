@@ -3,124 +3,147 @@ var express = require('express');
 var router = express.Router();
 var path = require('path');
 const aws = require('aws-sdk');
-var multer = require('multer');
-var multerS3 = require('multer-s3');
 var fs = require('fs');
 var dateFormat = require('dateformat');
+var s3 = new aws.S3();
+var myBucket = require('../settings').s3.bucket;
+var s3_url = require('../settings').s3.url;
+var { DateTime } = require('luxon');
+var { Pool, Client } = require('pg');
 
-//const S3_BUCKET = process.env.S3_BUCKET;
-const S3_BUCKET = 'smart-basket-itcus';
-var uploadDir = 'images';
-
-s3 = new aws.S3();
-var {
-    Pool,
-    Client
-} = require('pg');
-
-router.get('/', function (req, res, next) {
+var uploadDir = '/temp_images';
+router.get('/images', (req, res) => {
+    let images = getImagesFromDir(path.join(__dirname, 'public/uploads'));
     res.render('index', {
-        title: 'Smart Basket'
-    });
-});
-var upload = multer({
-    storage: multerS3({
-        s3: s3,
-        bucket: S3_BUCKET,
-        acl: 'public-read',
-        metadata: function (req, file, cb) {
-            console.log("In meta");
-            console.log(file);
-            cb(null, {
-                fieldName: file.fieldname
-            });
-        },
-        key: function (req, file, cb) {
-            console.log("In Key");
-            console.log(file);
-            cb(null, Date.now().toString()); //use Date.now() for unique file keys
-        }
+        title: 'Smart Basket Image Server',
+        images: images
     })
 });
 
-//use by upload form
-router.post('/upload', upload.array('upl', 1), function (req, res, next) {
-    res.send("Uploaded!");
-});
-router.post('/api/:_storenum/:_basketnum', function (req, res, next) {
-  var d = new Date();
-  var basketnum = req.params['_basketnum'];
-  var storenum = req.params['_storenum'];
-  var filename = basketnum + "-" + dateFormat(new Date(), "HH_MM") + ".jpg";
-  filename = path.join(__dirname, uploadDir + '/' + filename);
-  var f = fs.createWriteStream(filename);
-  var file_data = [];
-  req.on('data', function (chunk) {
-      f.write(chunk);
-      file_data.push(chunk);
-  }).on('end', function () {
-      f.end();
-      var fullData = Buffer.from(file_data);
-      console.log("saved " + filename);
-  });
-});
-router.post('/upload', upload.array('upl', 1), function (req, res, next) {
-    res.send("Uploaded!");
+function getImagesFromDir(dirPath) {
+    let allImages = [];
+
+    let files = fs.readdirSync(dirPath);
+
+    for (file of files) {
+        let fileLocation = path.join(dirPath, file);
+        var stat = fs.statSync(fileLocation);
+        if (stat && stat.isDirectory()) {
+            getImagesFromDir(fileLocation); // process sub directories
+        } else if (stat && stat.isFile() && ['.jpg', '.png'].indexOf(path.extname(fileLocation)) != -1) {
+            allImages.push('/uploads/' + file);
+        }
+    }
+    return allImages;
+}
+
+router.delete('/api/:_storeId/:_basketId', function (req, res) {
+    rimraf('.' + uploadDir + '/*', function () {
+        console.log('done');
+        res.status(200).end("OK");
+    });
 });
 
-/*
-router.post('/api/:_storenum/:_basketnum', function (req, res, next) {
-    var basketnum = req.params['_basketnum'];
-    var storenum = req.params['_storenum'];
-    console.log('Someone Requested on: '+storenum+" - "+basketnum);
-    var d = new Date();
-    var filename = basketnum + "-" + dateFormat(new Date(), "HH:MM") + ".jpg";
+router.post('/api/:_storeId/:_basketId', function (req, res) {
+    var store_id = req.params['_storeId'];
+    var basket_id = req.params['_basketId'];
+    var todaysDate = getDateTime();
+    var iso = todaysDate.replace(' ', 'T');
+    const pool = new Pool(settings.database.postgres);
+    var year = 2018;
+    var month = 09;
+    var day = 03;
+    var min = 25;
+    var hour = 23;
+
+    var filename = dateFormat(new Date(), "mm-dd-yyyy_HH_MM_ss") + ".jpg";
     filename = path.join(__dirname, uploadDir + '/' + filename);
     var f = fs.createWriteStream(filename);
-    var body = [];
     req.on('data', function (chunk) {
-        body.push(chunk);
         f.write(chunk);
     }).on('end', function () {
         f.end();
-        console.log("saved " + filename);
+        var name = basketId + "-" + hour + "" + min + ".jpg";
+        var path = storeId + "/" + year + "/" + month + "/" + day + "/" + name;
+        savetos3(filename, path);
+
+        var url = s3_url + path;
+        var insert_basket_stock = "INSERT INTO basket_stock (url, bid) VALUES($1, $2)"
+        var get_store = "SELECT * from store WHERE sid=$1 LIMIT 1"
+      (async () => {
+          const dbResponse = await pool.query(get_store, [store_id]);
+          console.log(dbResponse.rows);
+          if (dbResponse.rowCount > 0) {
+              var zone = dbResponse.rows[0].zone;
+              var minus = zone < 0 ? true : false;
+              var str = zone + '';
+              var has_minutes = str.indexOf('.') != -1? true : false ;
+              min = 0;
+              if(has_minutes) min = str.substr(str.indexOf('.'), str.length)
+              res.json({
+                  success: true,
+                  msg: 'Found data',
+                  data: output
+              });
+          } else {
+              res.json({
+                  success: false,
+                  msg: 'Nothing Found!',
+                  data: []
+              });
+          }
+          pool.end()
+          //res.json({success:true,msg:'Restock Response Processed Successfully for '+start, data:[]});
+      })().catch(e => setImmediate(() => {
+          console.error(e);
+      }))
+        console.log("saved " + filename +" -> "+ path);
         res.status(200).end("OK");
-        var data = Buffer.from(body);
-        uploadImageToS3(filename, data);
     });
-})*/
 
-function uploadImageToS3(filename, data){
-    // Create name for uploaded object key
-    var keyName = 'filename';
+});
 
-    // Create a promise on S3 service object
-    var bucketPromise = new aws.S3({
-    }).createBucket({
-        Bucket: S3_BUCKET
-    }).promise();
 
-    // Handle promise fulfilled/rejected states
-    bucketPromise.then(
-        function (data) {
-            // Create params for putObject call
-            var objectParams = {
-                Bucket: S3_BUCKET,
-                Key: keyName,
-                Body: data,
-                ACL: 'public-read'
-            };
-            // Create object upload promise
-            var uploadPromise = new AWS.S3({
-            }).putObject(objectParams).promise();
-            uploadPromise.then(
-                function (data) {
-                    console.log("Successfully uploaded data to " + S3_BUCKET + "/" + keyName);
-                });
-        }).catch(
-        function (err) {
-            console.error(err, err.stack);
+function savetos3(localpath, s3path) {
+    fs.readFile(localpath, function (err, data) {
+        if (err) {
+            throw err;
+        }
+        var params = {
+            Bucket: myBucket,
+            Key: s3path,
+            Body: data
+        };
+        s3.putObject(params, function (err, data) {
+            if (err) {
+                console.log(err)
+            } else {
+                console.log("Successfully uploaded data to ");
+            }
         });
+    });
+}
+
+function getDateTime() {
+    var today = new Date();
+    var hour = today.getHours();
+    hour = (hour < 10 ? "0" : '') + hour;
+
+    var min = today.getMinutes();
+    min = (min < 10 ? "0" : '') + min;
+
+    var sec = today.getSeconds();
+    sec = (sec < 10 ? "0" : '') + sec;
+
+    var year = today.getFullYear();
+
+    var month = today.getMonth() + 1;
+    month = (month < 10 ? "0" : '') + month;
+
+    var day = today.getDate();
+    day = (day < 10 ? "0" : '') + day;
+
+    return year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec
 }
 
 module.exports = router;

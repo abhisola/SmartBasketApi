@@ -1,0 +1,21 @@
+extends layout.pug
+
+block content
+    // Start Page Content
+    .row
+        each basket in baskets
+            .col-md-3
+                a(href="/basket/"+basket.bid)
+                    div(class="card p-20 bg-success")
+                        .media.widget-ten
+                            .media-left.meida.media-middle(style='\
+                                width: 100%;\
+                                ')
+                                span(style='\
+                                font-size: 25px;\
+                                ')
+                                    | #{basket.name}
+                                .media-body.media-text-right   
+                                    h2.color-white Online   
+                                    p.m-b-0 LastCheckIn: 2018-06-12 12:25
+    // End PAge Content

@@ -1,0 +1,15 @@
+extends layout.pug
+
+block content
+    .row
+        each store in stores
+            .col-md-3
+                a(href="/"+store.sid)
+                    .card.p-30
+                        .media
+                            .media-left.meida.media-middle
+                                span
+                                    i.fa.fa-building.f-s-40.color-primary
+                            .media-body.media-text-right
+                                h2 #{store.name}
+                                p.m-b-0 Some Information
