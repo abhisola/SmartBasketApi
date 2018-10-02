@@ -12,10 +12,14 @@ html(lang='en')
     title Smart Basket
     block styles
       // Bootstrap Core CSS
-      link(href='css/lib/bootstrap/bootstrap.min.css', rel='stylesheet')
+      link(href='/css/lib/bootstrap/bootstrap.min.css', rel='stylesheet')
       // Custom CSS
-      link(href='css/helper.css', rel='stylesheet')
-      link(href='css/style.css', rel='stylesheet')
+      link(href='/css/helper.css', rel='stylesheet')
+      link(href='/css/style.css', rel='stylesheet')
+      link(href='//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css', rel='stylesheet')
+      link(href='/plugins/slick/slick.css', rel='stylesheet')
+      link(href='/plugins/slick/slick-theme.css', rel='stylesheet')
+      link(href='/css/basket.css', rel='stylesheet')
       // HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries
       // WARNING: Respond.js doesn't work if you view the page via file:**
       //if lt IE 9
@@ -34,13 +38,13 @@ html(lang='en')
           nav.navbar.top-navbar.navbar-expand-md.navbar-light
             // Logo
             .navbar-header
-              a.navbar-brand(href='index.html')
+              a.navbar-brand(href='/stores')
                 // Logo icon
                 b
-                  img.dark-logo(src='images/logo.png', alt='homepage')
+                  h3 Smart Basket
                 // End Logo icon
                 // Logo text
-                span
+                //span
                   img.dark-logo(src='images/logo-text.png', alt='homepage')
             // End Logo
             .navbar-collapse
@@ -302,10 +306,10 @@ html(lang='en')
                     i.fa.fa-tachometer
                     span.hide-menu
                       | Dashboard 
-                      span.label.label-rouded.label-primary.pull-right 2
+                      //span.label.label-rouded.label-primary.pull-right 2
                   ul.collapse(aria-expanded='false')
                     li
-                      a(href='/racks') Racks 
+                      a(href='/stores') Stores
               //        
                 li.nav-label Apps
                 li
@@ -510,15 +514,25 @@ html(lang='en')
     // End Wrapper
     block scripts
       // All Jquery
-      script(src='js/lib/jquery/jquery.min.js')
+      script(src='//code.jquery.com/jquery-1.11.0.min.js')
+      script(src='//code.jquery.com/jquery-migrate-1.2.1.min.js')
+      script(src='https://code.jquery.com/ui/1.12.1/jquery-ui.js')
+      //script(src='/js/lib/jquery/jquery.min.js')
       // Bootstrap tether Core JavaScript
-      script(src='js/lib/bootstrap/js/popper.min.js')
-      script(src='js/lib/bootstrap/js/bootstrap.min.js')
+      script(src='/js/lib/bootstrap/js/popper.min.js')
+      script(src='/js/lib/bootstrap/js/bootstrap.min.js')
       // slimscrollbar scrollbar JavaScript
-      script(src='js/jquery.slimscroll.js')
+      script(src='/js/jquery.slimscroll.js')
       // Menu sidebar
-      script(src='js/sidebarmenu.js')
+      script(src='/js/sidebarmenu.js')
       // stickey kit
-      script(src='js/lib/sticky-kit-master/dist/sticky-kit.min.js')
+      script(src='/js/lib/sticky-kit-master/dist/sticky-kit.min.js')
+      // Slick Courosal
+      script(type="text/javascript" src="/plugins/slick/slick.min.js")
+      //Luxon
+      script(type="text/javascript" src="/plugins/luxon.min.js")
+
       // Custom JavaScript
-      script(src='js/custom.min.js')
+      script(src='/js/utils.js')
+      script(src='/js/custom.min.js')
+      script(src='/js/basket.js')

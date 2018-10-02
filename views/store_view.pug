@@ -2,20 +2,51 @@ extends layout.pug
 
 block content
     // Start Page Content
+    input#storenum(type="text" hidden="true" value=storenum)
     .row
-        each basket in baskets
-            .col-md-3
-                a(href="/basket/"+basket.bid)
-                    div(class="card p-20 bg-success")
-                        .media.widget-ten
-                            .media-left.meida.media-middle(style='\
-                                width: 100%;\
-                                ')
-                                span(style='\
-                                font-size: 25px;\
-                                ')
-                                    | #{basket.name}
-                                .media-body.media-text-right   
-                                    h2.color-white Online   
-                                    p.m-b-0 LastCheckIn: 2018-06-12 12:25
-    // End PAge Content
+        .col-md-12
+            .card.card-outline-primary
+                .card-header
+                    h4.m-b-0.text-white Visit Store By Entering Dates Below
+                .card-body
+                    .row.justify-content-md-center
+                        .col-md-6
+                            form(action="#")
+                                .form-body
+                                    .row.p-t-20
+                                        .col-md-5
+                                            label.control-label Start Date
+                                            input#start.form-control(type="text", placeholder="30-09-2018")
+                                        .col-md-5
+                                            label.control-label End Date
+                                            input#end.form-control(type="text", placeholder="30-09-2018")
+                                        .col-md-2
+                                            label.control-label &nbsp;
+                                            button.form-control.btn.btn-success.m-b-10.m-1-5(id="submit" type="button") Submit
+    
+    each basket in baskets
+        .row
+            .col-md-12
+                .card.card-outline-success
+                    .card-header
+                        h4.m-b-0.text-white #{basket.name}
+                    .card-body
+                        .row
+                            .col-md-12
+                                div.slider(id="slider"+basket.bid)
+                                    div.noImages No Images Present Select Some Other Date
+                    .row
+                        .col-md-4
+                            .card
+                                .card-body
+                                    h4.card-title Battery Status: #{basket.stat.percent}% | Voltage : #{basket.stat.voltage}
+                        .col-md-4
+                            .card
+                                .card-body
+                                    h4.card-title Last Checked In: #{basket.stat.last_check}             
+                        .col-md-4
+                            .card
+                                .card-body
+                                    h4.card-title Status : #{basket.stat.online}               
+
+                        
