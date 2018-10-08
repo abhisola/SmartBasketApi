@@ -51,7 +51,8 @@ router.get('/stores', function (req, res, next) {
               last_check : "Never Checked In",
               percent : "Unknown"
             };
-            var fetchbattery = "SELECT bid, date_recorded::text, voltage from battery_level WHERE bid=" + basket.bid + " ORDER BY date_recorded DESC limit 1";
+            var fetchbattery = "SELECT bid, date_recorded::text, voltage from battery_level WHERE bid=" + basket.bid + " ORDER BY date_recorded DESC, batid DESC  limit 1";
+            console.log('Battery : '+fetchbattery);
             const battery = await pool.query(fetchbattery);
             if(battery.rowCount) {
               basket.stat.last_check = getSanatizedDate(battery.rows[0].date_recorded);
@@ -76,15 +77,14 @@ function getSanatizedDate(date) {
   return DateTime.fromISO(sanatizedDate).toFormat('LLL dd, hh:mma');
 }
 function getOnlineStat(date) {
- var sanatizedDate = date.replace(' ', 'T');
- var end = DateTime.fromISO(sanatizedDate);
- var start = DateTime.local();
- var diffdays = start.diff(end, 'days');
- console.log(diffdays)
- if(diffdays.values.days >= 1) return false;
- else return true;
+  var sanatizedDate = date.replace(' ', 'T');
+  var end = DateTime.fromISO(sanatizedDate);
+  var start = DateTime.local();
+  var diffdays = start.diff(end, 'days');
+  if(diffdays.values.days >= 1) return false;
+  else return true;
 }
 function getPercent(volts) {
-  return 100;
+  return 0;
 }
 module.exports = router;

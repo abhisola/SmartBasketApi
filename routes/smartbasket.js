@@ -133,6 +133,7 @@ router.post('/api/battery/:_storeId/:_basketId', function (req, res, next) {
     var store_id = req.params['_storeId'];
     var basket_id = req.params['_basketId'];
     var voltage = req.body.voltage;
+    console.log("Voltage Recieved: "+voltage);
     var get_store = "SELECT * from store WHERE sid=$1 LIMIT 1";
     const pool = new Pool(settings.database.postgres);
       (async () => {
@@ -224,21 +225,25 @@ function saveVoltage(data, res) {
 function saveToDb(data, res) {
     const pool = new Pool(settings.database.postgres);
     var insert_basket_stock = "INSERT INTO basket_stock (url, bid, date_recorded, sid) VALUES($1, $2, $3, $4)";
+    var checkIfEntered = "SELECT * from basket_stock WHERE url=$1 AND bid=$2 AND date_recorded=$3 AND sid=$4";
     (async () => {
-        const dbResponse = await pool.query(insert_basket_stock, [data.url, data.basketId, data.date_recorded, data.storeId]);
-        if (dbResponse.rowCount > 0) {
-            console.log('Saved And Done Uploading');
-            res.json({
-                success: false,
-                msg: 'Saved And Done Uploading',
-                data: []
-            });
-        } else {
-            res.json({
-                success: false,
-                msg: 'Nothing Found!',
-                data: []
-            });
+        const checkAlreadyExists = await pool.query(insert_basket_stock, [data.url, data.basketId, data.date_recorded, data.storeId]);
+        if(checkAlreadyExists.rowCount <=0) {
+            const dbResponse = await pool.query(checkIfEntered, [data.url, data.basketId, data.date_recorded, data.storeId]);
+            if (dbResponse.rowCount > 0) {
+                console.log('Saved And Done Uploading');
+                res.json({
+                    success: false,
+                    msg: 'Saved And Done Uploading',
+                    data: []
+                });
+            } else {
+                res.json({
+                    success: false,
+                    msg: 'Nothing Found!',
+                    data: []
+                });
+            }
         }
         pool.end()
         //res.json({success:true,msg:'Restock Response Processed Successfully for '+start, data:[]});
