@@ -41,8 +41,8 @@ block content
                                 .card-body
                                     h4.card-title Battery Status: #{basket.stat.percent}% | Voltage : #{basket.stat.voltage}
                                     .progress
-                                        div.progress-bar.bg-danger.wow.animated.progress-animated(role="progressbar" style="width: 0%; height:8px;") 
-                                            span.sr-only 0% Complete
+                                        div.progress-bar.bg-danger.wow.animated.progress-animated(role="progressbar" style="width: "+basket.stat.percent+"%; height:8px;") 
+                                            span.sr-only #{basket.stat.percent}% Complete
                         .col-md-4
                             .card
                                 .card-body

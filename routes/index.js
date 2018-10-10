@@ -85,6 +85,14 @@ function getOnlineStat(date) {
   else return true;
 }
 function getPercent(volts) {
-  return 0;
+  var x = volts
+  if(x<3.3) x = 3.3
+  if(x>4.2) x = 4.2
+  var in_min = 3.3
+  var in_max = 4.2
+  var out_min = 0
+  var out_max = 100
+  var percent = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+  return Math.round(percent);
 }
 module.exports = router;
